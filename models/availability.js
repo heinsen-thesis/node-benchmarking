@@ -1,29 +1,47 @@
 var express = require('express');
 var benchrest = require('bench-rest');
-var flow = 'http://localhost:8080/rules';  // can use as simple single GET
+var moment = require('moment');
 
-// if the above flow will be used with the command line runner or
-// programmatically from a separate file then export it.
-module.exports = flow;
+var exec = require('child_process').exec;
+var child;
 
-// There are even more flow options like setup and teardown, see detailed usage
-var runOptions = {
-  limit: 10,     // concurrent connections
-  iterations: 100  // number of iterations to perform
-};
+function availabilityTest(host, nNodes, nRequests, rate, callback) {
+  const date = moment().format();
+  const duration = ((nRequests + (rate-1))/rate);
 
-function availability(callback) {
-  benchrest(flow, runOptions)
-      .on('error', function (err, ctxName) { console.error('Failed in %s with err: ', ctxName, err); })
-      .on('end', function (stats, errorCount) {
-        console.log('error count: ', errorCount);
-        console.log('stats', stats);
-        const movieResults = stats.main.meter;
+  const fileName = 'availability_tests/availability-' + date + '-nodes-' + nNodes + '-nRequests-' + nRequests + '-rate-' + rate + '-duration-' + duration;
+  console.log('duration: ' + duration);
+  const command = 'artillery quick --duration '+ duration +' --rate '+ rate +' -n 1 --output ' + fileName + ' '+ host;
 
-        console.log('test', movieResults);
-      });
+  child = exec(command, function (error, stdout, stderr) {
+    console.log('stdout: ' + stdout);
+    console.log('stderr: ' + stderr);
+    if (error !== null) {
+      console.log('exec error: ' + error);
+    }
+    callback(fileName);
+  });
+}
+
+var fs = require('fs');
+
+function availabilityReadFile(fileName) {
+  fs.readFile(fileName, 'utf8', function (err, data) {
+    if (err) throw err; // we'll not consider error handling for now
+    var obj = JSON.parse(data);
+    console.log("Median:");
+    console.log(obj.aggregate.scenarioDuration.median);
+    console.log("Duration:");
+    console.log(obj.aggregate.phases[0].duration);
+    console.log("Arrival Rate:");
+    console.log(obj.aggregate.phases[0].arrivalRate);
+
+
+
+  });
 }
 
 module.exports = {
- availability : availability
+ availabilityTest : availabilityTest,
+ availabilityReadFile: availabilityReadFile
 }

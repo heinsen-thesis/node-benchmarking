@@ -3,34 +3,26 @@ var model = require('../models/availability.js')
 
 var router = express.Router();
 
-var benchrest = require('bench-rest');
-var flow = 'http://localhost:8080/rules';  // can use as simple single GET
-
-// if the above flow will be used with the command line runner or
-// programmatically from a separate file then export it.
-module.exports = flow;
-
-// There are even more flow options like setup and teardown, see detailed usage
-var runOptions = {
-  limit: 10,     // concurrent connections
-  iterations: 100  // number of iterations to perform
-};
-
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  model.availability(function() {
-    benchrest(flow, runOptions)
-      .on('error', function (err, ctxName) { console.error('Failed in %s with err: ', ctxName, err); })
-      .on('end', function (stats, errorCount) {
-        console.log('error count: ', errorCount);
-        console.log('stats', stats);
-        const movieResults = stats.main.meter;
-
-        console.log('test', movieResults);
-      });
-  });
+  const host = 'http://localhost:8080/rules';
   
-  res.render('index', { title: 'Express' });
+  const nRequests = 10000;
+  const stepSize = 1000;
+
+  // model.availability(host, nRequests, stepSize, function() {
+    
+  // });
+
+  // model.availabilitySecond(host, nRequests, stepSize, function() {
+
+
+  // });
+  model.availabilityTest(host, 1, nRequests, stepSize, function(fileName) {
+    model.availabilityReadFile(fileName);
+  });
+
+  res.render('index', { title: 'Availability test' });
 });
 
 module.exports = router;
