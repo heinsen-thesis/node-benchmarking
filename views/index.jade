@@ -3,3 +3,5 @@ extends layout
 block content
   h1= title
   p Welcome to Joergens #{title}
+  button(class='btn', id='startTestBtn', type='submit') Start test
+  !{testResults}

@@ -22,6 +22,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/bootstrap', express.static(path.join(__dirname,'./node_modules/bootstrap/dist/')));
 app.use('/jquery', express.static(path.join(__dirname,'./node_modules/jquery/dist/')));
+app.use('/ajax', express.static(path.join(__dirname,'./node_modules/ajax/lib/')));
 
 app.use('/', routes);
 
@@ -56,5 +57,8 @@ app.use(function(err, req, res, next) {
   });
 });
 
+app.listen(3000, function () {
+  console.log('Example app listening on port 3000!')
+})
 
 module.exports = app;
