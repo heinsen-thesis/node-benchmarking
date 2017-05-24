@@ -1,8 +1,4 @@
 var express = require('express');
-var model = require('../models/availability.js')
-
-var router = express.Router();
-
 var benchrest = require('bench-rest');
 var flow = 'http://localhost:8080/rules';  // can use as simple single GET
 
@@ -16,10 +12,8 @@ var runOptions = {
   iterations: 100  // number of iterations to perform
 };
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  model.availability(function() {
-    benchrest(flow, runOptions)
+function availability(callback) {
+  benchrest(flow, runOptions)
       .on('error', function (err, ctxName) { console.error('Failed in %s with err: ', ctxName, err); })
       .on('end', function (stats, errorCount) {
         console.log('error count: ', errorCount);
@@ -28,9 +22,8 @@ router.get('/', function(req, res, next) {
 
         console.log('test', movieResults);
       });
-  });
-  
-  res.render('index', { title: 'Express' });
-});
+}
 
-module.exports = router;
+module.exports = {
+ availability : availability
+}
