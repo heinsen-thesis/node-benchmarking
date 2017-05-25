@@ -101,7 +101,7 @@ function identifyTestFiles(callback) {
         if(file.includes('availability')) {
           var json = require('../availability_test_result/' + file);
           console.log(json.testResultsArr);
-          var items;
+          var items = '';
           for(var item in json.testResultsArr) {
             console.log(json.testResultsArr[item].nodes);
             items += availabilityTestCompiledFunction({
@@ -109,7 +109,7 @@ function identifyTestFiles(callback) {
               rate: json.testResultsArr[item].rate,
               duration: json.testResultsArr[item].duration,
               median: json.testResultsArr[item].median
-            })
+            });
           }
           tables += availabilityTestTableCompielFunction({
             title: file,
@@ -117,6 +117,7 @@ function identifyTestFiles(callback) {
           });
         }
     });
+  console.log(tables);
   callback(tables);
 }
 

@@ -1,7 +1,31 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to Joergens #{title}
-  button(class='btn', id='startTestBtn', type='submit') Start test
-  !{testResults}
+    h1= title
+    p Welcome to Joergens #{title}
+    div(id='search-form-group', class='col-md-6')
+        p Define parameters for the test below
+        div(class='col-md-8')
+            h5='Host'
+            input(class='form-control col-md-2', id='host', name='host', value='#{host}')
+        div(class='col-md-8')
+            h5='Number of total requests'
+            input(class='form-control col-md-2', id='nRequests', name='nRequests', value='#{nRequests}')
+        div(class='col-md-8')
+            h5='Number of nodes'
+            input(class='form-control col-md-2', id='nNodes', name='nNodes', value='#{nNodes}')
+        div(class='col-md-8')
+            h5='Start Rate'
+            input(class='form-control col-md-2', id='startRate', name='startRate', value='#{startRate}')
+        div(class='col-md-8')
+            h5='Number of Steps'
+            input(class='form-control col-md-2', id='nSteps', name='nSteps', value='#{nSteps}')
+        div(class='col-md-8')
+            h5='Start step'
+            input(class='form-control col-md-2', id='startStep', name='startStep', value='#{startStep}')
+        div(class='col-md-8')
+            h5='Start test'
+            button(class='btn', id='startTestBtn', type='submit') Start test
+    div(id='test-results', class='col-md-10 col-md-offset-1')
+        h3='Test results'
+        !{testResults}
