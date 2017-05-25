@@ -1,5 +1,12 @@
 div(class='col-md-12')
-	!{title}
-	table(class='col-md-10')
-		tbody
-			!{items}
+	div.col-md-12
+		!{title}
+	div.col-md-12
+		div(class='col-md-3') Rate (r/s)
+		div(class='col-md-2') Duration (s)
+		div(class='col-md-3') Median (ms)
+		div(class='col-md-4') Success Rate (%)
+	div.col-md-12
+		table(class='col-md-12')
+			tbody
+				!{items}

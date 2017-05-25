@@ -25,7 +25,8 @@ block content
             input(class='form-control col-md-2', id='startStep', name='startStep', value='#{startStep}')
         div(class='col-md-8')
             h5='Start test'
-            button(class='btn', id='startTestBtn', type='submit') Start test
+            button(class='btn col-md-5', id='startTestBtn', type='submit') Start test
+            button(class='btn col-md-6 col-md-offset-1', id='startScriptTestBtn', type='submit') Start test script
     div(id='test-results', class='col-md-10 col-md-offset-1')
         h3='Test results'
         !{testResults}
