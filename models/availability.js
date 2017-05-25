@@ -44,18 +44,18 @@ function vegettaTestRun(host, nNodes, nRequests, startRate, nSteps, startStep) {
 function recursiveTestRun(step) {
   console.log('host:' + config.host + ' nNodes:' + config.nNodes + ' nRequests:' + config.nRequests + ' Rate:' + (config.startRate*step) + ' Step:' + step + ' nSteps:' + config.nSteps);
   availabilityTest(step, function(fileName) {
-    availabilityReadFile(fileName, function(err) {
+    availabilityReadFile(fileName, step, function(err) {
       if(err !== null){
         console.log('Error ocurred, lets genereate some results');
-        createResults(config.resultsFileName, testResults);
+        return createResults(config.resultsFileName, testResults);
       }
       else if(step >= config.nSteps) {
         console.log('Out test is done, creating results');
-        createResults(config.resultsFileName, testResults);
+        return createResults(config.resultsFileName, testResults);
       }
       else {
         console.log('Running another loop');
-        recursiveTestRun(++step);
+        return recursiveTestRun(++step);
       }
     });
   });
@@ -99,17 +99,17 @@ function availabilityTest(step, callback) {
           console.log('exec error: ' + error);
         }
         console.log('Script done!');
-        callback(fileName);
+        return callback(fileName);
       });
     }
   });
 }
 
-function availabilityReadFile(fileName, callback) {
+function availabilityReadFile(fileName, step, callback) {
   fs.readFile(fileName + '.json', 'utf8', function (err, data) {
     if (err) {
       console.log('ReadFile: Error ocurred');
-      callback(err);
+      return callback(err);
     }
     else {
     var obj = JSON.parse(data);
@@ -125,13 +125,13 @@ function availabilityReadFile(fileName, callback) {
 
 
     testResults.testResultsArr.push({
-      'rate': Math.ceil(obj.rate),
+      'rate': (config.startRate*step),
       'duration': Math.ceil(obj.duration/1000000000),
       'median': Math.ceil(obj.latencies.mean/1000000),
       'successRate': obj.success
     });
-
-    callback(null);
+    createResults(config.resultsFileName, testResults);
+    return callback(null);
   }
   });
 }
@@ -157,7 +157,7 @@ function identifyTestFiles(callback) {
           });
         }
     });
-  callback(tables);
+  return callback(tables);
 }
 
 module.exports = {
