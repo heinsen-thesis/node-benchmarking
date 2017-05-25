@@ -16,11 +16,12 @@ var testResults = {
 
 
 var config = {
-  host: "",
+  host: "http://localhost:8010/rules",
   nNodes: 1,
-  nRequests: 10000,
+  nRequests: 100,
   startRate: 100,
   nSteps: 14,
+  startStep: 1,
   resultsFileName: "",
   inProgress: false
 }
@@ -32,7 +33,9 @@ function availabilityTestRun(host, nNodes, nRequests, startRate, nSteps, startSt
   config.nRequests = nRequests;
   config.startRate = startRate;
   config.nSteps = nSteps;
+  config.startStep = startStep;
   config.resultsFileName = 'availability_test_result/availability-test-' + startDate + '-nodes-' + nNodes + '-nRequests-' + nRequests + '-nSteps-' + nSteps + '.json';
+
   recursiveTestRun(startStep);
 }
 
@@ -42,7 +45,7 @@ function recursiveTestRun(step) {
     availabilityReadFile(fileName, function() {
       if(step < config.nSteps) {
         console.log('Running another loop');
-        recursiveTestRun(step+1);
+        recursiveTestRun(++step);
       } else {
         console.log('Writing file');
         fs.writeFile(config.resultsFileName, JSON.stringify(testResults), function(err) {
@@ -57,18 +60,23 @@ function recursiveTestRun(step) {
 function availabilityTest(step, callback) {
   console.log('availabilityTest');
   const date = moment().format("M-D-YY-h-mm-ss-a");
-
   const currentRate = (config.startRate*step);
-
-  const duration = ((config.nRequests + (currentRate-1))/currentRate);
-
+  console.log('currentRate:');
+  console.log(currentRate);
+  const duration = Math.ceil((config.nRequests + (currentRate-1))/currentRate);
+  console.log('duration:');
+  console.log(duration);
   const fileName = 'availability_test/availability-' + date + '-nodes-' + config.nNodes + '-nRequests-' + config.nRequests + '-rate-' + currentRate + '.json';
-  const command = 'artillery quick --duration '+ duration +' --rate '+ currentRate +' -n 1 --output ' + fileName + ' ' + config.host;
+  console.log('fileName:');
+  console.log(fileName);
+  const command = 'artillery quick --duration '+ duration +' --rate '+ currentRate +' -k --output ' + fileName + ' ' + config.host;
+  console.log('Command done');
 
   child = exec(command, function (error, stdout, stderr) {
     if (error !== null) {
       console.log('exec error: ' + error);
     }
+    console.log('Calling callback');
     callback(fileName);
   });
 }
@@ -125,5 +133,6 @@ module.exports = {
  availabilityTestRun: availabilityTestRun,
  availabilityTest : availabilityTest,
  availabilityReadFile: availabilityReadFile,
- identifyTestFiles: identifyTestFiles
+ identifyTestFiles: identifyTestFiles,
+ config: config
 }
