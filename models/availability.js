@@ -15,7 +15,7 @@ var testResults = {
 };
 
 var config = {
-  host: "35.187.19.229:8080",
+  host: "35.189.198.45:8080",
   nNodes: 10,
   nRequests: 10000,
   startRate: 100,
@@ -29,7 +29,7 @@ var scriptConfig = {
   fileName: ""
 }
 
-function vegettaTestRun(host, nNodes, nRequests, startRate, nSteps, startStep) {
+function vegetaTestRun(host, nNodes, nRequests, startRate, nSteps, startStep) {
   const startDate = moment().format("M-D-YY-h-mm-ss-a");
   config.host = host;
   config.nNodes = nNodes;
@@ -82,8 +82,8 @@ function availabilityTest(step, callback) {
   console.log('fileName:');
   console.log(fileName);
 
-  const command = 'echo "GET http://' + config.host +'/" | vegeta attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 | tee '+ fileName +'.bin | vegeta report';
-  const secondCommand = 'vegeta report -inputs=' + fileName + '.bin -reporter=json > ' + fileName + '.json';
+  const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 | tee '+ fileName +'.bin | vegeta/vegeta report';
+  const secondCommand = 'vegeta/vegeta report -inputs=' + fileName + '.bin -reporter=json > ' + fileName + '.json';
 
   child = exec(command, function (error, stdout, stderr) {
     console.log('stdout: ' + stdout);
@@ -165,5 +165,5 @@ module.exports = {
  availabilityReadFile: availabilityReadFile,
  identifyTestFiles: identifyTestFiles,
  config: config,
- vegettaTestRun: vegettaTestRun
+ vegetaTestRun: vegetaTestRun
 }

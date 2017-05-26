@@ -33,7 +33,7 @@ router.post('/startAvailabilityTest', function(req, res){
 
 router.post('/startScriptAvailabilityTest', function(req, res){
   console.log('Started script test');
-  model.vegettaTestRun(req.body.host, 
+  model.vegetaTestRun(req.body.host, 
     parseInt(req.body.nNodes), 
     parseInt(req.body.nRequests), 
     parseInt(req.body.startRate), 
