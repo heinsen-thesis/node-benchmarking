@@ -68,11 +68,11 @@ app.use(function(err, req, res, next) {
 if (cluster.isMaster) {  
   app.listen(8080, function () {
     console.log('Master listening on port 8080!')
-  })
+  });
 } else {
   app.listen(3000, function () {
   console.log('Child listening on port 3000')
-})
+});
 }
 
 module.exports = app;  
