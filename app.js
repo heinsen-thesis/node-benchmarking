@@ -57,8 +57,8 @@ app.use(function(err, req, res, next) {
   });
 });
 
-app.listen(41234, function () {
-  console.log('Example app listening on port 41234!')
+app.listen(8000, function () {
+  console.log('Example app listening on port 8000!')
 })
 
 module.exports = app;
