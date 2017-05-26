@@ -12,7 +12,7 @@ var app = express();
 
 
 if (cluster.isMaster) {  
-    const worker = cluster.fork();
+    const worker = cluster.fork({3000:3000});
     console.log('Forking');
 }
 
