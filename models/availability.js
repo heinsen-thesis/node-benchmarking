@@ -2,28 +2,30 @@ var express = require('express');
 var benchrest = require('bench-rest');
 var moment = require('moment');
 const jade = require('jade');
+var async = require('async');
 var fs = require('fs');
 
 const availabilityTestCompiledFunction = jade.compileFile('views/partials/availability-item-template.jade');
 const availabilityTestTableCompielFunction = jade.compileFile('views/partials/availability-table-item-template.jade');
 
 var exec = require('child_process').exec;
-var child;
 
 var testResults = {
     testResultsArr: []
 };
 
 var config = {
-  host: "35.189.198.45:8080",
-  nNodes: 10,
+  host: "localhost:8080",
+  nNodes: 1,
   nRequests: 10000,
   startRate: 100,
-  nSteps: 14,
-  startStep: 14,
+  nSteps: 12,
+  startStep: 10,
   resultsFileName: "",
   inProgress: false
 }
+
+var currentStep = 0;
 
 var scriptConfig = {
   fileName: ""
@@ -42,22 +44,78 @@ function vegetaTestRun(host, nNodes, nRequests, startRate, nSteps, startStep) {
 }
 
 function recursiveTestRun(step) {
-  console.log('host:' + config.host + ' nNodes:' + config.nNodes + ' nRequests:' + config.nRequests + ' Rate:' + (config.startRate*step) + ' Step:' + step + ' nSteps:' + config.nSteps);
-  availabilityTest(step, function(fileName) {
-    availabilityReadFile(fileName, step, function(err) {
-      if(err !== null){
-        console.log('Error ocurred, lets genereate some results');
-        return createResults(config.resultsFileName, testResults);
-      }
-      else if(step >= config.nSteps) {
-        console.log('Out test is done, creating results');
-        return createResults(config.resultsFileName, testResults);
+  availabilityTest(step, function(filename) {
+      console.log("We are completly done");
+
+
+  });
+}
+
+function availabilityTest(currentStep, callback) {
+  console.log('availabilityTest step:');
+  console.log(currentStep);
+  const date = moment().format("M-D-YY-h-mm-ss-a");
+  const currentRate = (config.startRate*currentStep);
+  const duration = (config.nRequests + (currentRate-1))/currentRate;
+  const fileName = 'availability_test/availability-' + date + '-nodes-' + config.nNodes + '-nRequests-' + config.nRequests + '-rate-' + currentRate;
+  
+  console.log('fileName:');
+  console.log(fileName);
+
+  const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta-darwin attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 | tee '+ fileName +'.bin | vegeta/vegeta-darwin report && vegeta/vegeta-darwin report -inputs=' + fileName + '.bin -reporter=json > ' + fileName + '.json';
+
+  exec(command, function (error, stdout, stderr) {
+    console.log('stdout: ' + stdout);
+    console.log('stderr: ' + stderr);
+    if (error !== null) {
+      console.log('exec error: ' + error);
+      return
+    }
+    else {
+      console.log('This step done!');
+      availabilityReadFile(fileName, currentStep);
+
+      if(currentStep >= config.nSteps) {
+        console.log('Out test is done');
+        callback(fileName);
+        return
       }
       else {
         console.log('Running another loop');
-        return recursiveTestRun(++step);
+        return availabilityTest(++currentStep, callback);
       }
-    });
+    }
+  });
+}
+
+function availabilityReadFile(fileName, step) {
+  console.log('availabilityReadFile called, at step:');
+  console.log(step);
+  fs.readFile(fileName + '.json', 'utf8', function (err, data) {
+    if (err) {
+      console.log('ReadFile: Error ocurred');
+      return
+    }
+    else {
+      var obj = JSON.parse(data);
+      // console.log(obj);
+      console.log("Median:");
+      console.log(obj.latencies.mean);
+      console.log("Duration:");
+      console.log(obj.duration);
+      console.log("Arrival Rate:");
+      console.log(obj.rate);
+      console.log("Success percentage:");
+      console.log(obj.success);
+
+      testResults.testResultsArr.push({
+        'rate': (config.startRate*step),
+        'duration': Math.ceil(obj.duration/1000000000),
+        'median': Math.ceil(obj.latencies.mean/1000000),
+        'successRate': obj.success
+      });
+      createResults(config.resultsFileName, testResults);
+    }
   });
 }
 
@@ -69,95 +127,31 @@ function createResults(resultsFileName, testResultJSONArray) {
     }});
 }
 
-function availabilityTest(step, callback) {
-  console.log('availabilityTest');
-  const date = moment().format("M-D-YY-h-mm-ss-a");
-  const currentRate = (config.startRate*step);
-  console.log('currentRate:');
-  console.log(currentRate);
-  const duration = (config.nRequests + (currentRate-1))/currentRate;
-  console.log('duration:');
-  console.log(duration);
-  const fileName = 'availability_test/availability-' + date + '-nodes-' + config.nNodes + '-nRequests-' + config.nRequests + '-rate-' + currentRate;
-  console.log('fileName:');
-  console.log(fileName);
-
-  const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 | tee '+ fileName +'.bin | vegeta/vegeta report';
-  const secondCommand = 'vegeta/vegeta report -inputs=' + fileName + '.bin -reporter=json > ' + fileName + '.json';
-
-  child = exec(command, function (error, stdout, stderr) {
-    console.log('stdout: ' + stdout);
-    console.log('stderr: ' + stderr);
-    if (error !== null) {
-      console.log('exec error: ' + error);
-    }
-    else {
-      child = exec(secondCommand, function (error, stdout, stderr) {
-        console.log('stdout: ' + stdout);
-        console.log('stderr: ' + stderr);
-        if (error !== null) {
-          console.log('exec error: ' + error);
-        }
-        console.log('Script done!');
-        return callback(fileName);
-      });
-    }
-  });
-}
-
-function availabilityReadFile(fileName, step, callback) {
-  fs.readFile(fileName + '.json', 'utf8', function (err, data) {
-    if (err) {
-      console.log('ReadFile: Error ocurred');
-      return callback(err);
-    }
-    else {
-    var obj = JSON.parse(data);
-    // console.log(obj);
-    console.log("Median:");
-    console.log(obj.latencies.mean);
-    console.log("Duration:");
-    console.log(obj.duration);
-    console.log("Arrival Rate:");
-    console.log(obj.rate);
-    console.log("Success percentage:");
-    console.log(obj.success);
-
-
-    testResults.testResultsArr.push({
-      'rate': (config.startRate*step),
-      'duration': Math.ceil(obj.duration/1000000000),
-      'median': Math.ceil(obj.latencies.mean/1000000),
-      'successRate': obj.success
-    });
-    createResults(config.resultsFileName, testResults);
-    return callback(null);
-  }
-  });
-}
 
 function identifyTestFiles(callback) {
   var tables = '';
   fs.readdirSync('availability_test_result/').forEach(file => {
-        if(file.includes('availability')) {
-          var json = require('../availability_test_result/' + file);
-          var items = '';
-          for(var item in json.testResultsArr) {
-            items += availabilityTestCompiledFunction({
-              nodes: json.testResultsArr[item].nodes,
-              rate: json.testResultsArr[item].rate,
-              duration: json.testResultsArr[item].duration,
-              median: json.testResultsArr[item].median,
-              successRate: json.testResultsArr[item].successRate
-            });
-          }
-          tables += availabilityTestTableCompielFunction({
-            title: file,
-            items: items
+    if(file.includes('availability')) {
+      var json = require('../availability_test_result/' + file);
+      var items = '';
+      
+      json.testResultsArr.forEach(function(item) {
+          items += availabilityTestCompiledFunction({
+            nodes: item.nodes,
+            rate: item.rate,
+            duration: item.duration,
+            median: item.median,
+            successRate: item.successRate
           });
-        }
-    });
-  return callback(tables);
+      });
+      
+      tables += availabilityTestTableCompielFunction({
+        title: file,
+        items: items
+      });
+    }
+  });
+  callback(tables);
 }
 
 module.exports = {

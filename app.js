@@ -10,13 +10,6 @@ var routes = require('./routes/index');
 
 var app = express();
 
-
-if (cluster.isMaster) {  
-    const worker = cluster.fork({3000:3000});
-    console.log('Forking');
-}
-
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -65,14 +58,8 @@ app.use(function(err, req, res, next) {
   });
 });
 
-if (cluster.isMaster) {  
-  app.listen(8080, function () {
-    console.log('Master listening on port 8080!')
-  });
-} else {
-  app.listen(3000, function () {
-  console.log('Child listening on port 3000')
+app.listen(8000, function() {
+  console.log('Listening on port 8000');
 });
-}
 
 module.exports = app;  
