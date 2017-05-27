@@ -4,15 +4,12 @@ var moment = require('moment');
 const jade = require('jade');
 var async = require('async');
 var fs = require('fs');
+var os = require('os');
 
 const availabilityTestCompiledFunction = jade.compileFile('views/partials/availability-item-template.jade');
 const availabilityTestTableCompielFunction = jade.compileFile('views/partials/availability-table-item-template.jade');
 
 var exec = require('child_process').exec;
-
-var testResults = {
-    testResultsArr: []
-};
 
 var config = {
   host: "localhost:8080",
@@ -39,7 +36,7 @@ function vegetaTestRun(host, nNodes, nRequests, startRate, nSteps, startStep) {
   config.startRate = startRate;
   config.nSteps = nSteps;
   config.startStep = startStep;
-  config.resultsFileName = 'availability_test_result/availability-test-' + startDate + '-nodes-' + nNodes + '-nRequests-' + nRequests + '-nSteps-' + nSteps + '.json';
+  config.resultsFileName = 'availability-test-' + startDate + '-nodes-' + nNodes + '-nRequests-' + nRequests + '-nSteps-' + nSteps + '.json';
   recursiveTestRun(startStep);
 }
 
@@ -62,7 +59,9 @@ function availabilityTest(currentStep, callback) {
   console.log('fileName:');
   console.log(fileName);
 
-  const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 | tee '+ fileName +'.bin | vegeta/vegeta report && vegeta/vegeta report -inputs=' + fileName + '.bin -reporter=json > ' + fileName + '.json';
+  let platform = os.platform() == 'darwin' ? '-darwin' : '';
+
+  const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta'+ platform +' attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 | tee '+ fileName +'.bin | vegeta/vegeta' + platform + ' report && vegeta/vegeta' + platform + ' report -inputs=' + fileName + '.bin -reporter=json > ' + fileName + '.json';
 
   exec(command, function (error, stdout, stderr) {
     console.log('stdout: ' + stdout);
@@ -91,42 +90,29 @@ function availabilityTest(currentStep, callback) {
 function availabilityReadFile(fileName, step) {
   console.log('availabilityReadFile called, at step:');
   console.log(step);
-  fs.readFile(fileName + '.json', 'utf8', function (err, data) {
-    if (err) {
-      console.log('ReadFile: Error ocurred');
-      return
-    }
-    else {
-      var obj = JSON.parse(data);
-      // console.log(obj);
-      console.log("Median:");
-      console.log(obj.latencies.mean);
-      console.log("Duration:");
-      console.log(obj.duration);
-      console.log("Arrival Rate:");
-      console.log(obj.rate);
-      console.log("Success percentage:");
-      console.log(obj.success);
+  let data = fs.readFileSync(fileName + '.json', 'utf8');
+  var obj = JSON.parse(data);
+  // console.log(obj);
+  console.log("Median:");
+  console.log(obj.latencies.mean);
+  console.log("Duration:");
+  console.log(obj.duration);
+  console.log("Arrival Rate:");
+  console.log(obj.rate);
+  console.log("Success percentage:");
+  console.log(obj.success);
+  
+  let resultData = fs.existsSync('availability_test_result/' + config.resultsFileName) ? JSON.parse(fs.readFileSync('availability_test_result/' + config.resultsFileName, 'utf8')) : {testResultsArr: []};
 
-      testResults.testResultsArr.push({
-        'rate': (config.startRate*step),
-        'duration': Math.ceil(obj.duration/1000000000),
-        'median': Math.ceil(obj.latencies.mean/1000000),
-        'successRate': obj.success
-      });
-      createResults(config.resultsFileName, testResults);
-    }
+  resultData.testResultsArr.push({
+    rate: (config.startRate*step),
+    duration: Math.ceil(obj.duration/1000000000),
+    median: Math.ceil(obj.latencies.mean/1000000),
+    successRate: obj.success
   });
+  
+  fs.writeFileSync('availability_test_result/' + config.resultsFileName, JSON.stringify(resultData));
 }
-
-function createResults(resultsFileName, testResultJSONArray) {
-  console.log('Creating result JSON file');
-  fs.writeFile(resultsFileName, JSON.stringify(testResultJSONArray), function(err) {
-    if(err) {
-      return console.log(err);
-    }});
-}
-
 
 function identifyTestFiles(callback) {
   var tables = '';
