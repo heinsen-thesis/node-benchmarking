@@ -62,7 +62,7 @@ function availabilityTest(currentStep, callback) {
   console.log('fileName:');
   console.log(fileName);
 
-  const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta-darwin attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 | tee '+ fileName +'.bin | vegeta/vegeta-darwin report && vegeta/vegeta-darwin report -inputs=' + fileName + '.bin -reporter=json > ' + fileName + '.json';
+  const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 | tee '+ fileName +'.bin | vegeta/vegeta report && vegeta/vegeta report -inputs=' + fileName + '.bin -reporter=json > ' + fileName + '.json';
 
   exec(command, function (error, stdout, stderr) {
     console.log('stdout: ' + stdout);
