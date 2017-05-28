@@ -13,7 +13,8 @@ spec:
     spec:
       containers:
       - name: nodejs-benchmarking
-        image: ihacheinsen/nodejs-benchmarking
+        image: ihacheinsen/nodejs-benchmarking:latest
+        imagePullPolicy: Always
         ports:
           - containerPort: 8080
             name: front-facing

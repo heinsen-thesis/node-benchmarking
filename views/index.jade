@@ -28,5 +28,8 @@ block content
             button(class='btn col-md-5', id='startTestBtn', type='submit') Start test
             button(class='btn col-md-6 col-md-offset-1', id='startScriptTestBtn', type='submit') Start test script
     div(id='test-results', class='col-md-10 col-md-offset-1')
+        h3='Test is running:'
+        !{inProgress}
         h3='Test results'
         !{testResults}
+        
