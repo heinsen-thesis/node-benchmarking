@@ -115,13 +115,7 @@ function availabilityReadFile(fileName, step) {
   console.log("Success percentage:");
   console.log(obj.success);
 
-  console.log('Does the file exist');
-  console.log(fs.existsSync('availability_test_result/' + config.resultsFileName));
-
   let resultData = fs.existsSync('availability_test_result/' + config.resultsFileName) ? JSON.parse(fs.readFileSync('availability_test_result/' + config.resultsFileName, 'utf8')) : {testResultsArr: []};
-
-  console.log('ResultData:');
-  console.log(resultData);
 
   resultData.testResultsArr.push({
     rate: (config.startRate*step),
@@ -129,9 +123,6 @@ function availabilityReadFile(fileName, step) {
     median: Math.ceil(obj.latencies.mean/1000000),
     successRate: obj.success
   });
-
-  console.log('ResultData, with new additions:');
-  console.log(resultData);
   
   fs.writeFileSync('availability_test_result/' + config.resultsFileName, JSON.stringify(resultData));
 }
@@ -141,12 +132,8 @@ function identifyTestFiles(callback) {
   var tables = '';
   fs.readdirSync('availability_test_result/').forEach(file => {
     if(file.includes('availability')) {
-      console.log('identifyTestFiles, identified file:');
-      console.log(file);
       var json = JSON.parse(fs.readFileSync('./availability_test_result/' + file, 'utf8'));
       var items = '';
-      console.log('file content:');
-      console.log(json);
       json.testResultsArr.forEach(function(item) {
           items += availabilityTestCompiledFunction({
             nodes: item.nodes,
