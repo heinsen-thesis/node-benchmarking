@@ -10,6 +10,8 @@ console.log('Availability.js file has been loaded');
 
 const availabilityTestCompiledFunction = jade.compileFile('views/partials/availability-item-template.jade');
 const availabilityTestTableCompielFunction = jade.compileFile('views/partials/availability-table-item-template.jade');
+const availability_test_folder = 'results/availability_test/';
+const availability_test_result_folder = 'results/availability_test_result/';
 
 var exec = require('child_process').exec;
 
@@ -64,7 +66,7 @@ function availabilityTest(currentStep, callback) {
   const date = moment().format("M-D-YY-h-mm-ss-a");
   const currentRate = (config.startRate*currentStep);
   const duration = (config.nRequests + (currentRate-1))/currentRate;
-  const fileName = 'availability_test/availability-' + date + '-nodes-' + config.nNodes + '-nRequests-' + config.nRequests + '-rate-' + currentRate;
+  const fileName = availability_test_folder + 'availability-' + date + '-nodes-' + config.nNodes + '-nRequests-' + config.nRequests + '-rate-' + currentRate;
   
   console.log('fileName:');
   console.log(fileName);
@@ -115,7 +117,7 @@ function availabilityReadFile(fileName, step) {
   console.log("Success percentage:");
   console.log(obj.success);
 
-  let resultData = fs.existsSync('availability_test_result/' + config.resultsFileName) ? JSON.parse(fs.readFileSync('availability_test_result/' + config.resultsFileName, 'utf8')) : {testResultsArr: []};
+  let resultData = fs.existsSync(availability_test_result_folder + config.resultsFileName) ? JSON.parse(fs.readFileSync(availability_test_result_folder + config.resultsFileName, 'utf8')) : {testResultsArr: []};
 
   resultData.testResultsArr.push({
     rate: (config.startRate*step),
@@ -124,15 +126,15 @@ function availabilityReadFile(fileName, step) {
     successRate: obj.success
   });
   
-  fs.writeFileSync('availability_test_result/' + config.resultsFileName, JSON.stringify(resultData));
+  fs.writeFileSync(availability_test_result_folder + config.resultsFileName, JSON.stringify(resultData));
 }
 
 function identifyTestFiles(callback) {
   console.log('identifyTestFiles');
   var tables = '';
-  fs.readdirSync('availability_test_result/').forEach(file => {
+  fs.readdirSync(availability_test_result_folder).forEach(file => {
     if(file.includes('availability')) {
-      var json = JSON.parse(fs.readFileSync('./availability_test_result/' + file, 'utf8'));
+      var json = JSON.parse(fs.readFileSync(availability_test_result_folder + file, 'utf8'));
       var items = '';
       json.testResultsArr.forEach(function(item) {
           items += availabilityTestCompiledFunction({

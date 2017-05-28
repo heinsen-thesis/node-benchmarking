@@ -15,19 +15,15 @@ $('#startTestBtn').click(function(event){
     event.preventDefault();
 });
 
-$('#startScriptTestBtn').click(function(event){
-    console.log('Test');
+
+$('#downloadTestFiles').click(function(event){
+    console.log('DownloadTestFiles clicked');
     $.ajax({
         type: 'POST',
-        url: '/startScriptAvailabilityTest',
+        url: '/zipTestFiles',
         data: {
-            'host': $('#host').val(),
-            'nNodes': $('#nNodes').val(),
-            'nRequests': $('#nRequests').val(),
-            'startRate': $('#startRate').val(),
-            'nSteps': $('#nSteps').val(),
-            'startStep': $('#startStep').val()
-        }
-    });
+        }}).done(function(){
+            window.location.replace("/results/archive.zip");
+        });
     event.preventDefault();
 });
