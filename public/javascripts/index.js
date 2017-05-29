@@ -23,7 +23,6 @@ $('#downloadTestFiles').click(function(event){
         url: '/zipTestFiles',
         data: {
         }}).done(function(){
-            window.location.replace("/results/archive.zip");
+            window.location.replace("./archive.zip");
         });
-    event.preventDefault();
 });

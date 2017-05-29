@@ -34,7 +34,7 @@ router.post('/startAvailabilityTest', function(req, res){
 
 router.post('/zipTestFiles', function(req, res) {
   console.log('zipTestFiles');
-  zipFolder('results/', 'results/archive.zip', function(err) {
+  zipFolder('./results/', './public/archive.zip', function(err) {
       if(err) {
           console.log('zipFolder erro:', err);
       } else {

@@ -6,12 +6,11 @@ var async = require('async');
 var fs = require('fs');
 var os = require('os');
 
-console.log('Availability.js file has been loaded');
-
 const availabilityTestCompiledFunction = jade.compileFile('views/partials/availability-item-template.jade');
 const availabilityTestTableCompielFunction = jade.compileFile('views/partials/availability-table-item-template.jade');
 const availability_test_folder = 'results/availability_test/';
 const availability_test_result_folder = 'results/availability_test_result/';
+const availability_test_bin_folder = 'test/availability_test_bin/';
 
 var exec = require('child_process').exec;
 
@@ -60,20 +59,18 @@ function recursiveTestRun(step) {
 function availabilityTest(currentStep, callback) {
   console.log('availabilityTest step:');
   console.log(currentStep);
-  console.log('Current config file:');
-  console.log(config);
 
   const date = moment().format("M-D-YY-h-mm-ss-a");
   const currentRate = (config.startRate*currentStep);
   const duration = (config.nRequests + (currentRate-1))/currentRate;
-  const fileName = availability_test_folder + 'availability-' + date + '-nodes-' + config.nNodes + '-nRequests-' + config.nRequests + '-rate-' + currentRate;
+  const fileName = 'availability-' + date + '-nodes-' + config.nNodes + '-nRequests-' + config.nRequests + '-rate-' + currentRate;
   
   console.log('fileName:');
   console.log(fileName);
 
   let platform = os.platform() == 'darwin' ? '-darwin' : '';
 
-  const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta'+ platform +' attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 -timeout=5s | tee '+ fileName +'.bin | vegeta/vegeta' + platform + ' report && vegeta/vegeta' + platform + ' report -inputs=' + fileName + '.bin -reporter=json > ' + fileName + '.json';
+  const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta'+ platform +' attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 -timeout=5s | tee '+ availability_test_bin_folder + fileName +'.bin | vegeta/vegeta' + platform + ' report && vegeta/vegeta' + platform + ' report -inputs=' + availability_test_bin_folder + fileName + '.bin -reporter=json > ' + availability_test_folder + fileName + '.json';
 
   async.parallel([
       async.apply(exec, command)
@@ -105,9 +102,8 @@ function availabilityTest(currentStep, callback) {
 function availabilityReadFile(fileName, step) {
   console.log('availabilityReadFile called, at step:');
   console.log(step);
-  let data = fs.readFileSync(fileName + '.json', 'utf8');
+  let data = fs.readFileSync(availability_test_folder + fileName + '.json', 'utf8');
   var obj = JSON.parse(data);
-  // console.log(obj);
   console.log("Median:");
   console.log(obj.latencies.mean);
   console.log("Duration:");
