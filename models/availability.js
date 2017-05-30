@@ -15,7 +15,7 @@ const availability_test_bin_folder = 'test/availability_test_bin/';
 var exec = require('child_process').exec;
 
 var config = {
-  host: "146.148.31.131:8080/rules",
+  host: "35.187.98.58:8080/rules",
   nNodes: 1,
   nRequests: 100000,
   startRate: 10000,
@@ -64,7 +64,8 @@ function availabilityTest(currentStep, callback) {
   const currentRate = (config.startRate*currentStep);
   const duration = (config.nRequests + (currentRate-1))/currentRate;
   const fileName = 'availability-' + date + '-nodes-' + config.nNodes + '-nRequests-' + config.nRequests + '-rate-' + currentRate;
-  
+  const outputFileName = availability_test_bin_folder + fileName + '_output.json';
+
   console.log('fileName:');
   console.log(fileName);
 
@@ -73,7 +74,9 @@ function availabilityTest(currentStep, callback) {
   const command = 'echo "GET http://' + config.host +'/" | vegeta/vegeta'+ platform +' attack -duration='+ duration +'s -rate='+ currentRate +' -connections=100000 -timeout=5s | tee '+ availability_test_bin_folder + fileName +'.bin | vegeta/vegeta' + platform + ' report && vegeta/vegeta' + platform + ' report -inputs=' + availability_test_bin_folder + fileName + '.bin -reporter=json > ' + availability_test_folder + fileName + '.json';
 
   async.parallel([
-      async.apply(exec, command)
+      function(callback) {
+        exec(command, {maxBuffer: 1024 * 5000}, callback);
+      }
     ],
     function(error, stdout, stderr) {
       console.log('stdout: ' + stdout);
