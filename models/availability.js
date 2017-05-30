@@ -77,14 +77,7 @@ function availabilityTest(currentStep, callback) {
     ],
     function(error, stdout, stderr) {
       console.log('stdout: ' + stdout);
-      if (error !== null) {
-        console.log(error);
-        if(error !== 'Error: stdout maxBuffer exceeded') {
-          console.log('exec error: ' + error);
-          return
-        }
-      }
-
+      
       console.log('This step done!');
       availabilityReadFile(fileName, currentStep);
 
