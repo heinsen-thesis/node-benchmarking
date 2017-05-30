@@ -17,10 +17,10 @@ var exec = require('child_process').exec;
 var config = {
   host: "146.148.31.131:8080/rules",
   nNodes: 1,
-  nRequests: 10000,
-  startRate: 1000,
-  nSteps: 12,
-  startStep: 10,
+  nRequests: 100000,
+  startRate: 10000,
+  nSteps: 20,
+  startStep: 1,
   resultsFileName: "",
   inProgress: false
 }
@@ -77,24 +77,25 @@ function availabilityTest(currentStep, callback) {
     ],
     function(error, stdout, stderr) {
       console.log('stdout: ' + stdout);
-      console.log('stderr: ' + stderr);
       if (error !== null) {
-        console.log('exec error: ' + error);
+        console.log(error);
+        if(error !== 'Error: stdout maxBuffer exceeded') {
+          console.log('exec error: ' + error);
+          return
+        }
+      }
+
+      console.log('This step done!');
+      availabilityReadFile(fileName, currentStep);
+
+      if(currentStep >= config.nSteps) {
+        console.log('Out test is done');
+        callback(fileName);
         return
       }
       else {
-        console.log('This step done!');
-        availabilityReadFile(fileName, currentStep);
-
-        if(currentStep >= config.nSteps) {
-          console.log('Out test is done');
-          callback(fileName);
-          return
-        }
-        else {
-          console.log('Running another loop');
-          return availabilityTest(++currentStep, callback);
-        }
+        console.log('Running another loop');
+        return availabilityTest(++currentStep, callback);
       }
   });
 }
