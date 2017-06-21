@@ -139,8 +139,12 @@ function identifyTestFiles(callback) {
           });
       });
       
+      var splitTitleArray = file.slice(0, -5).split('-');  
+      
+      let title = 'Date: ' + splitTitleArray[3] + '/' + splitTitleArray[2] + '/' + splitTitleArray[4] + ' Time: ' + splitTitleArray[5] + ':' + splitTitleArray[6] + ' ' + splitTitleArray[8] + ' Nodes: ' + splitTitleArray[10] + ' N Requests: ' + splitTitleArray[12] + ' N Steps: ' + splitTitleArray[14];
+      console.log(title);
       tables += availabilityTestTableCompielFunction({
-        title: file,
+        title: title,
         items: items
       });
     }

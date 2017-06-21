@@ -13,6 +13,8 @@ $('#startTestBtn').click(function(event){
     	}
     });
     event.preventDefault();
+    
+    $('#testInProgressDiv').html('The test is currently running');
 });
 
 

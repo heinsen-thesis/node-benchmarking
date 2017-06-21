@@ -18,7 +18,7 @@ router.get('/', function(req, res, next) {
         startRate: availabilityModel.config.startRate, 
         nSteps: availabilityModel.config.nSteps, 
         startStep: availabilityModel.config.startStep, 
-        inProgress: availabilityModel.config.inProgress });
+        inProgress: (availabilityModel.config.inProgress) ? 'The test is currently running' : 'No test is currently runnig'});
   });
 });
 
